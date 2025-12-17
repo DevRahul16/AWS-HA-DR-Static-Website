@@ -1,35 +1,44 @@
-# Setup Guide – AWS HA & DR Static Website
+# Setup Guide – High Availability & Disaster Recovery on AWS
 
-This guide explains how to deploy a **multi-region HA & DR static website** on AWS.
-
----
-
-## 🏗 Step 1: Create VPCs
-- **Mumbai:** CIDR 10.0.0.0/16
-- **Virginia:** CIDR 20.0.0.0/16
+This guide provides step-by-step instructions to implement the **HA & DR architecture** described in `README.md`.
 
 ---
 
-## ⚙️ Step 2: EC2 & Auto Scaling
-- Amazon Linux 2 AMI
-- Instance type: t2.micro
-- Install Apache web server
+## 🏗️ Step 1: Create VPCs in Two Regions
+
+### Region A – Primary (ap-south-1: Mumbai)
+1. Go to **VPC Dashboard**
+2. Create a VPC
+   - CIDR block: `10.0.0.0/16`
+3. Create **2 public subnets** in different Availability Zones
 
 ---
 
-## 🌐 Step 3: Load Balancers
-- Create Application Load Balancer
-- Configure Target Groups per region
+### Region B – Secondary / DR (us-east-1: N. Virginia)
+1. Switch to **us-east-1**
+2. Create a VPC
+   - CIDR block: `20.0.0.0/16`
+3. Create **2 public subnets** in different Availability Zones
 
 ---
 
-## 🌍 Step 4: Route 53 Failover
-- Primary record → Mumbai ALB
-- Secondary record → Virginia ALB
-- Routing policy: Failover
+## ⚙️ Step 2: Launch EC2 Instances & Auto Scaling
 
----
+### Region A
+1. Go to **EC2 Dashboard**
+2. Create a **Launch Template**
+   - AMI: Amazon Linux 2 / Ubuntu
+   - Instance type: `t2.micro`
+   - Security Group:
+     - SSH (22)
+     - HTTP (80)
+     - HTTPS (443)
 
-## 🔍 Step 5: DR Testing
-- Stop EC2 instances in Mumbai
-- Verify traffic shifts to Virginia
+3. User Data (optional):
+```bash
+#!/bin/bash
+yum install -y httpd
+systemctl start httpd
+systemctl enable httpd
+echo "Hello from Region A" > /var/www/html/index.html
+
